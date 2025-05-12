@@ -1,0 +1,12 @@
+{
+    "adminCredentials": [
+        {
+            "id": "8013",
+            "name": "Smit",
+            "email": "smitrnw@gmail.com",
+            "password": "162714",
+            "role": "admin",
+            "profilePicture": null
+        }
+    ]
+}
