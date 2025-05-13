@@ -18,7 +18,7 @@ import EditProduct from '../pages/products/EditProduct';
 import Users from '../pages/users/Users';
 import UserDetail from '../pages/users/UserDetail';
 import Account from '../pages/account/Account';
-import Settings from '../pages/account/Settings';
+// import Settings from '../pages/account/Settings';
 import NotFound from '../pages/NotFound';
 
 const AppRoutes = () => {
@@ -135,16 +135,6 @@ const AppRoutes = () => {
           </PrivateRoute>
         }
       />
-
-      <Route
-        path="/settings"
-        element={
-          <PrivateRoute>
-            <Settings />
-          </PrivateRoute>
-        }
-      />
-
       {/* Catch all route */}
       <Route path="*" element={<NotFound />} />
     </Routes>

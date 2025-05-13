@@ -1,15 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const Card = ({ 
-  children, 
-  className = '', 
-  title, 
+const Card = ({
+  children,
+  className = '',
+  title,
   subtitle,
   footer,
   noPadding = false,
   isHoverable = false,
-  ...props 
+  ...props
 }) => {
   return (
     <motion.div
@@ -29,11 +29,11 @@ const Card = ({
           {subtitle && <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>}
         </div>
       )}
-      
+
       <div className={noPadding ? '' : 'p-6'}>
         {children}
       </div>
-      
+
       {footer && (
         <div className="px-6 py-4 bg-gray-50 dark:bg-gray-750 border-t border-gray-200 dark:border-gray-700">
           {footer}

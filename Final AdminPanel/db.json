@@ -8,5 +8,8 @@
             "role": "admin",
             "profilePicture": null
         }
-    ]
+    ],
+    "adminToken": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MjJlY2E0OTIxOTRhN2Y2ZTRjYmJjNiIsImVtYWlsIjoic21pdHJud0BnbWFpbC5jb20iLCJpYXQiOjE3NDcxMTkyNjgsImV4cCI6MTc0NzEyMjg2OH0.uv6wCo04hJ73zjEBX2lqjU3d-kUGGzdd05FO5thP5LQ"
+    }
 }

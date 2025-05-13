@@ -22,36 +22,60 @@ export const AuthProvider = ({ children }) => {
   const login = (email, password) => {
     return new Promise(async (resolve, reject) => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || '';
-        console.log(apiUrl);
+        const dbUrl = import.meta.env.VITE_DB_URL || '';
+        console.log(dbUrl);
 
-        const response = await axios.get(`${apiUrl}/adminCredentials`);
-        console.log(response);
+        const dbResponse = await axios.get(`${dbUrl}/adminCredentials`);
+        const tokenResponse = await axios.get(`${dbUrl}/adminToken`)
+        console.log(dbResponse);
 
-        const users = response.data;
-
+        const users = dbResponse.data;
         // Find a matching user
         const matchedUser = users.find(user => user.email === email && user.password === password);
 
-        if (matchedUser) {
-          const user = {
-            id: matchedUser.id || '1',
-            name: matchedUser.name || 'Admin User',
-            email: matchedUser.email,
-            role: matchedUser.role || 'admin',
-            profilePicture: matchedUser.profilePicture || null
-          };
+        const token = tokenResponse.data.token
 
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          setCurrentUser(user);
-          toast.success('Login successful');
-          resolve(user);
+        if (matchedUser) {
+          const admin = {
+            email: matchedUser.email,
+            password: matchedUser.password
+          }
+
+          const apiUrl = import.meta.env.VITE_API_URL || ''
+          const response = await axios.post(`${apiUrl}/login`, admin, {
+            headers: {
+              'Authentication': `Bearer ${token}`
+            }
+          })
+
+          console.log(response, "response while loging in with token");
+
+          if (response.status >= 200 && response.status < 300) {
+            const user = {
+              id: matchedUser.id || '1',
+              name: matchedUser.name || 'Admin User',
+              email: matchedUser.email,
+              role: matchedUser.role || 'admin',
+              profilePicture: matchedUser.profilePicture || null
+            };
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            localStorage.setItem('token', response.data.token)
+            setCurrentUser(user);
+            toast.success('Login successful');
+            resolve(user);
+          } else {
+            toast.error('Invalid credentials');
+            console.log("error in loging in if else Authcontext");
+
+            reject(new Error('Invalid credentials'));
+          }
         } else {
           toast.error('Invalid credentials');
           reject(new Error('Invalid credentials'));
         }
       } catch (error) {
         toast.error('Login failed. Server error.');
+        console.log("server error in authcontext login fucntio   n");
         reject(error);
       }
     });
@@ -86,6 +110,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('currentUser');
+    localStorage.removeItem('token')
     setCurrentUser(null);
     toast.success('Logged out successfully');
   };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -27,32 +27,32 @@ import axios from 'axios';
 
 
 // Mock data for products
-const generateProducts = (count) => {
-  const categories = ['Electronics', 'Clothing', 'Home & Kitchen', 'Sports', 'Beauty'];
-  const statuses = ['In Stock', 'Low Stock', 'Out of Stock'];
+// const generateProducts = (count) => {
+//   const categories = ['Electronics', 'Clothing', 'Home & Kitchen', 'Sports', 'Beauty'];
+//   const statuses = ['In Stock', 'Low Stock', 'Out of Stock'];
 
-  return Array.from({ length: count }, (_, i) => ({
-    id: `PRD-${1000 + i}`,
-    name: [
-      'Wireless Earbuds', 'Smartphone Case', 'Smart Watch', 'Bluetooth Speaker',
-      'T-Shirt', 'Jeans', 'Sneakers', 'Backpack', 'Coffee Mug', 'Water Bottle',
-      'Yoga Mat', 'Desk Lamp', 'Notebook', 'Sunglasses', 'Headphones'
-    ][Math.floor(Math.random() * 15)],
-    category: categories[Math.floor(Math.random() * categories.length)],
-    price: `$${(Math.random() * 150 + 10).toFixed(2)}`,
-    inventory: Math.floor(Math.random() * 100),
-    status: statuses[Math.floor(Math.random() * statuses.length)],
-    image: [
-      'https://images.pexels.com/photos/3394666/pexels-photo-3394666.jpeg?auto=compress&cs=tinysrgb&w=100',
-      'https://images.pexels.com/photos/4071887/pexels-photo-4071887.jpeg?auto=compress&cs=tinysrgb&w=100',
-      'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&cs=tinysrgb&w=100',
-      'https://images.pexels.com/photos/1279107/pexels-photo-1279107.jpeg?auto=compress&cs=tinysrgb&w=100',
-      'https://images.pexels.com/photos/5709639/pexels-photo-5709639.jpeg?auto=compress&cs=tinysrgb&w=100'
-    ][Math.floor(Math.random() * 5)],
-  }));
-};
+//   return Array.from({ length: count }, (_, i) => ({
+//     id: `PRD-${1000 + i}`,
+//     name: [
+//       'Wireless Earbuds', 'Smartphone Case', 'Smart Watch', 'Bluetooth Speaker',
+//       'T-Shirt', 'Jeans', 'Sneakers', 'Backpack', 'Coffee Mug', 'Water Bottle',
+//       'Yoga Mat', 'Desk Lamp', 'Notebook', 'Sunglasses', 'Headphones'
+//     ][Math.floor(Math.random() * 15)],
+//     category: categories[Math.floor(Math.random() * categories.length)],
+//     price: `$${(Math.random() * 150 + 10).toFixed(2)}`,
+//     inventory: Math.floor(Math.random() * 100),
+//     status: statuses[Math.floor(Math.random() * statuses.length)],
+//     image: [
+//       'https://images.pexels.com/photos/3394666/pexels-photo-3394666.jpeg?auto=compress&cs=tinysrgb&w=100',
+//       'https://images.pexels.com/photos/4071887/pexels-photo-4071887.jpeg?auto=compress&cs=tinysrgb&w=100',
+//       'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&cs=tinysrgb&w=100',
+//       'https://images.pexels.com/photos/1279107/pexels-photo-1279107.jpeg?auto=compress&cs=tinysrgb&w=100',
+//       'https://images.pexels.com/photos/5709639/pexels-photo-5709639.jpeg?auto=compress&cs=tinysrgb&w=100'
+//     ][Math.floor(Math.random() * 5)],
+//   }));
+// };
 
-const mockProducts = generateProducts(48);
+// const mockProducts = generateProducts(48);
 
 const statusColorMap = {
   'In Stock': 'success',
@@ -62,7 +62,7 @@ const statusColorMap = {
 
 const Products = () => {
   const navigate = useNavigate();
-  const [products, setProducts] = useState(mockProducts);
+  const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedStatuses, setSelectedStatuses] = useState([]);
@@ -71,35 +71,37 @@ const Products = () => {
   const [productToDelete, setProductToDelete] = useState(null);
 
   const deleteModal = useModal();
+  const apiUrl = import.meta.env.VITE_API_URL || '';
+  const imageUrl = import.meta.env.VITE_IMAGE_URL || ''
 
   const productsPerPage = 10;
   const getProductData = async () => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const token = localStorage.getItem('token');
+      console.log('Fetched token:', token); // Add this
+      if (!token) {
+        throw new Error('Token not found in localStorage');
+      }
       const response = await axios.get(`${apiUrl}/getAllProducts`, {
         headers: {
-          'Authorization': 'Bearer ' + "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MWYzODFhYTM0NzAwMTkxMTQwMGQzOSIsImVtYWlsIjoic21pdHJud0BnbWFpbC5jb20iLCJpYXQiOjE3NDcwNDI4MzQsImV4cCI6MTc0NzA0NjQzNH0.t1Xa4vZAi4C3ZdvV1AxgRMx8iV2cfyd4s1aDJKd7Yp4"
-        }
-      })
+          Authorization: `Bearer ${token}`,
+        },
+      });
       console.log(response.data, 'product data');
       setProducts(response.data);
     } catch (error) {
-      console.log(error.message, 'error while fetching product data in products page');
-
+      console.error('Error in getProductData:', error.message);
     }
-  }
+  };
 
   useEffect(() => {
     getProductData()
   }, []);
   // Filter options
-  const categoryOptions = [
-    { value: 'Electronics', label: 'Electronics' },
-    { value: 'Clothing', label: 'Clothing' },
-    { value: 'Home & Kitchen', label: 'Home & Kitchen' },
-    { value: 'Sports', label: 'Sports' },
-    { value: 'Beauty', label: 'Beauty' },
-  ];
+  const categoryOptions = useMemo(() => {
+    const uniqueCategories = [...new Set(products.map(p => p.category).filter(Boolean))];
+    return uniqueCategories.map(c => ({ value: c, label: c }));
+  }, [products]);
 
   const statusOptions = [
     { value: 'In Stock', label: 'In Stock' },
@@ -109,18 +111,24 @@ const Products = () => {
 
   // Filter products based on search and other filters
   const filteredProducts = products.filter(product => {
-    const matchesSearch = searchQuery === '' ||
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const title = product.title || product.name || '';
+    const category = product.category || '';
+    const status = product.status || '';
 
-    const matchesCategory = selectedCategories.length === 0 ||
-      selectedCategories.includes(product.category);
+    const matchesSearch =
+      searchQuery === '' ||
+      title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product._id.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesStatus = selectedStatuses.length === 0 ||
-      selectedStatuses.includes(product.status);
+    const matchesCategory =
+      selectedCategories.length === 0 || selectedCategories.includes(category);
+
+    const matchesStatus =
+      selectedStatuses.length === 0 || selectedStatuses.includes(status);
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
+
 
   // Pagination
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
@@ -132,7 +140,7 @@ const Products = () => {
     setIsLoading(true);
     // Simulate API request
     setTimeout(() => {
-      setProducts(generateProducts(48));
+      getProductData()
       setIsLoading(false);
     }, 800);
   };
@@ -146,13 +154,12 @@ const Products = () => {
   };
 
   const confirmDelete = async () => {
-    const apiUrl = import.meta.env.VITE_API_URL || '';
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MWYzODFhYTM0NzAwMTkxMTQwMGQzOSIsImVtYWlsIjoic21pdHJud0BnbWFpbC5jb20iLCJpYXQiOjE3NDcwNDI4MzQsImV4cCI6MTc0NzA0NjQzNH0.t1Xa4vZAi4C3ZdvV1AxgRMx8iV2cfyd4s1aDJKd7Yp4"
+    const token = localStorage.getItem('token')
     const { _id } = productToDelete;
 
     const response = await axios.delete(`${apiUrl}/deleteProduct/${_id}`, {
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`
       }
     })
     console.log(response, 'response after deleting product');
@@ -190,13 +197,13 @@ const Products = () => {
         <div className="flex items-center">
           <div className="h-10 w-10 rounded overflow-hidden bg-gray-100 dark:bg-gray-700 mr-3 flex-shrink-0">
             <img
-              src={`http://localhost:3000/image/${row.image}`}
+              src={`${imageUrl}/${row.image}`}
               alt={row.title}
               className="h-full w-full object-cover"
             />
           </div>
           <div>
-            <div className="font-medium text-gray-900 dark:text-white">{row.title}</div>
+            <div className="font-medium text-gray-900 dark:text-white">{row.title.charAt(0).toUpperCase() + row.title.slice(1).toLowerCase()}</div>
             <div className="text-xs text-gray-500 dark:text-gray-400">{row._id}</div>
           </div>
         </div>
@@ -215,7 +222,7 @@ const Products = () => {
       header: 'Price',
       accessor: 'price',
       cell: (row) => (
-        <span className="font-medium text-gray-900 dark:text-white">{row.price}</span>
+        <span className="font-medium text-gray-900 dark:text-white">$ {row.price}</span>
       ),
     },
     // {
@@ -244,7 +251,7 @@ const Products = () => {
             leftIcon={<Eye className="h-4 w-4" />}
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/products/${row.id}`);
+              navigate(`/products/${row._id}`);
             }}
           >
             View
@@ -255,7 +262,7 @@ const Products = () => {
             leftIcon={<Edit className="h-4 w-4" />}
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/products/edit/${row.id}`);
+              navigate(`/products/edit/${row._id}`);
             }}
           >
             Edit
@@ -367,7 +374,7 @@ const Products = () => {
           data={currentProducts}
           isLoading={isLoading}
           emptyMessage="No products found"
-          onRowClick={(row) => navigate(`/products/${row.id}`)}
+          onRowClick={(row) => navigate(`/products/${row._id}`)}
         />
 
         <div className="mt-6">
@@ -404,14 +411,14 @@ const Products = () => {
             <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <div className="h-10 w-10 rounded overflow-hidden bg-gray-100 dark:bg-gray-700 mr-3">
                 <img
-                  src={productToDelete.image}
-                  alt={productToDelete.name}
+                  src={`${imageUrl}/${productToDelete.image}`}
+                  alt={productToDelete.title}
                   className="h-full w-full object-cover"
                 />
               </div>
               <div>
-                <div className="font-medium text-gray-900 dark:text-white">{productToDelete.name}</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">{productToDelete.id}</div>
+                <div className="font-medium text-gray-900 dark:text-white">{productToDelete.title}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{productToDelete._id}</div>
               </div>
             </div>
           </div>

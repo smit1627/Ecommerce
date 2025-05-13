@@ -35,31 +35,15 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Fetch the stored credentials from db.json
-      const dbUrl = import.meta.env.VITE_DB_URL || '';
-      const response = await axios.get(`${dbUrl}/adminCredentials`);
-      console.log(response);
-
-      const stored = await response.data;
-      console.log(stored);
-
-      stored.forEach(async (user) => {
-        if (formData.email === user.email && formData.password === user.password) {
-          await login(formData.email, formData.password);
-          navigate('/dashboard');
-          console.log('User found:', user);
-        } else {
-          setErrors({ ...errors, password: 'Invalid email or password' });
-        }
-      })
+      await login(formData.email, formData.password);
+      navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error.message);
-      setErrors({ ...errors, password: 'Server error. Try again later.' });
+      setErrors({ ...errors, password: 'Invalid email or password' });
     } finally {
       setIsLoading(false);
     }
   };
-
 
   const fillDemoCredentials = () => {
     setFormData({ email: 'admin@example.com', password: 'password' });

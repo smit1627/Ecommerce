@@ -1,26 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   ArrowLeft,
   Edit,
   Trash2,
-  BarChart2,
-  Tag,
-  Package,
   Star,
-  ShoppingCart,
   ExternalLink,
   Calendar,
   Clock,
-  TrendingUp,
-  TrendingDown
 } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Modal, { useModal } from '../../components/ui/Modal';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 
 // Mock product details
 const getProductDetails = (id) => {
@@ -74,36 +68,66 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('details');
+  const imageUrl = import.meta.env.VITE_IMAGE_URL || ''
+  const apiUrl = import.meta.env.VITE_API_URL || ''
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem('token')
+        console.log(token);
+
+        const response = await axios.get(`${apiUrl}/getSingleProduct/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        console.log(response, "Response from getting the data in product details");
+
+        setProduct(response.data);
+
+      } catch (error) {
+        console.log("Error fetching product:", error.message);
+        setProduct(getProductDetails(id)); // fallback
+      }
+      setIsLoading(false);
+    };
+
+    fetchAll();
+  }, [id]);
 
   const deleteModal = useModal();
 
-  useEffect(() => {
-    // Simulate API request
-    setIsLoading(true);
-    setTimeout(() => {
-      const productDetails = getProductDetails(id);
-      setProduct(productDetails);
-      setIsLoading(false);
-    }, 800);
-  }, [id]);
+  const handleDelete = async () => {
+    const token = localStorage.getItem('token')
 
-  const handleDelete = () => {
-    // Simulate API call to delete product
-    toast.promise(
-      new Promise((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, 1000);
-      }),
-      {
-        loading: 'Deleting product...',
-        success: 'Product deleted successfully',
-        error: 'Failed to delete product',
+    const response = await axios.delete(`${apiUrl}/deleteProduct/${product._id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
       }
-    );
-
-    deleteModal.close();
-    navigate('/products');
+    })
+    console.log(response, 'response after deleting product');
+    // Simulate API request
+    if (response.status === 200) {
+      toast.promise(
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve();
+            navigate('/products');
+          }, 1000);
+        }),
+        {
+          loading: 'Deleting product...',
+          success: 'Product deleted successfully',
+          error: 'Failed to delete product',
+        }
+      );
+      deleteModal.close();
+    }
+    else {
+      toast.error('Failed to delete product');
+    }
   };
 
   if (isLoading) {
@@ -142,25 +166,19 @@ const ProductDetail = () => {
           >
             <ArrowLeft className="h-4 w-4 mr-1" /> Back to Products
           </button>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-            {product.name}
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center mt-6">
+            {product.title.charAt(0).toUpperCase() + product.title.slice(1).toLowerCase()}
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">{product.id}</p>
+          {/* <p className="text-gray-500 dark:text-gray-400 mt-1">{product._id}</p> */}
         </div>
 
         <div className="mt-4 sm:mt-0 flex flex-wrap gap-2">
           <Button
             variant="outline"
             leftIcon={<Edit className="h-4 w-4" />}
-            onClick={() => navigate(`/products/edit/${product.id}`)}
+            onClick={() => navigate(`/products/edit/${product._id}`)}
           >
             Edit
-          </Button>
-          <Button
-            variant="outline"
-            leftIcon={<ExternalLink className="h-4 w-4" />}
-          >
-            View in Store
           </Button>
           <Button
             variant="danger"
@@ -205,8 +223,8 @@ const ProductDetail = () => {
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div className="md:col-span-5">
                   <img
-                    src={product.images[0]}
-                    alt={product.name}
+                    src={`${imageUrl}/${product.image}`}
+                    alt={product.title}
                     className="w-full h-auto rounded-lg object-cover"
                     style={{ maxHeight: '400px' }}
                   />
@@ -214,15 +232,9 @@ const ProductDetail = () => {
               </div>
             </Card>
 
-            {/* Description */}
-            <Card title="Description">
-              <p className="text-gray-700 dark:text-gray-300">
-                {product.description}
-              </p>
-            </Card>
 
             {/* Related Products */}
-            <Card title="Related Products">
+            {/* <Card title="Related Products">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {product.related.map((related) => (
                   <div
@@ -245,7 +257,7 @@ const ProductDetail = () => {
                   </div>
                 ))}
               </div>
-            </Card>
+            </Card> */}
           </div>
 
           <div className="space-y-6">
@@ -253,15 +265,15 @@ const ProductDetail = () => {
             <Card>
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">Product Summary</h3>
-                <Badge variant={statusColorMap[product.status]}>
+                {/* <Badge variant={statusColorMap[product.status]}>
                   {product.status}
-                </Badge>
+                </Badge> */}
               </div>
 
               <div className="space-y-3">
                 <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
                   <span className="text-gray-500 dark:text-gray-400">Price</span>
-                  <span className="font-medium text-gray-900 dark:text-white">{product.price}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">$ {product.price}</span>
                 </div>
 
                 <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
@@ -269,14 +281,14 @@ const ProductDetail = () => {
                   <span className="text-gray-900 dark:text-white">{product.category}</span>
                 </div>
 
-                <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
+                {/* <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
                   <span className="text-gray-500 dark:text-gray-400">Rating</span>
                   <span className="flex items-center text-gray-900 dark:text-white">
                     {product.reviews.average}
                     <Star className="h-4 w-4 text-yellow-500 ml-1 mr-1" fill="currentColor" />
                     <span className="text-xs text-gray-500 dark:text-gray-400">({product.reviews.count} reviews)</span>
                   </span>
-                </div>
+                </div> */}
               </div>
 
 
@@ -288,45 +300,41 @@ const ProductDetail = () => {
                 <div className="flex items-center text-sm">
                   <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
                   <span className="text-gray-500 dark:text-gray-400 mr-1">Created:</span>
-                  <span className="text-gray-900 dark:text-white">{product.createdAt}</span>
+                  <span className="text-gray-900 dark:text-white">
+                    {new Intl.DateTimeFormat('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    }).format(new Date(product.createdAt))}
+                  </span>
                 </div>
 
                 <div className="flex items-center text-sm">
                   <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
                   <span className="text-gray-500 dark:text-gray-400 mr-1">Last Updated:</span>
-                  <span className="text-gray-900 dark:text-white">{product.updatedAt}</span>
+                  <span className="text-gray-900 dark:text-white">
+                    {new Intl.DateTimeFormat('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    }).format(new Date(product.updatedAt))}
+                  </span>
                 </div>
               </div>
             </Card>
 
-            {/* Actions */}
-            <div className="space-y-2">
-              <Button
-                variant="primary"
-                size="sm"
-                leftIcon={<Edit className="h-4 w-4" />}
-                fullWidth
-                onClick={() => navigate(`/products/edit/${product.id}`)}
-              >
-                Edit Product
-              </Button>
-
-              <Button
-                variant="danger"
-                size="sm"
-                leftIcon={<Trash2 className="h-4 w-4" />}
-                fullWidth
-                onClick={deleteModal.open}
-              >
-                Delete Product
-              </Button>
-            </div>
+            {/* Description */}
+            <Card title="Description">
+              <p className="text-gray-700 dark:text-gray-300">
+                {product.description}
+              </p>
+            </Card>
           </div>
         </div>
       )}
 
       {/* Reviews Tab */}
-      {activeTab === 'reviews' && (
+      {/* {activeTab === 'reviews' && (
         <div className="space-y-6">
           <Card>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -385,7 +393,7 @@ const ProductDetail = () => {
             </div>
           </Card>
         </div>
-      )}
+      )} */}
 
       {/* Delete Confirmation Modal */}
       <Modal
@@ -410,14 +418,14 @@ const ProductDetail = () => {
         <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <div className="h-10 w-10 rounded overflow-hidden bg-gray-100 dark:bg-gray-700 mr-3">
             <img
-              src={product.images[0]}
-              alt={product.name}
+              src={`${imageUrl}/${product.image}`}
+              alt={product.title}
               className="h-full w-full object-cover"
             />
           </div>
           <div>
-            <div className="font-medium text-gray-900 dark:text-white">{product.name}</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">{product.id}</div>
+            <div className="font-medium text-gray-900 dark:text-white">{product.title}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">{product._id}</div>
           </div>
         </div>
       </Modal>

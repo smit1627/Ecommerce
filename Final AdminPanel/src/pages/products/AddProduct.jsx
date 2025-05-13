@@ -48,19 +48,22 @@ const AddProduct = () => {
       payload.append('image', imageFile);
 
       const apiUrl = import.meta.env.VITE_API_URL || '';
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MWYzODFhYTM0NzAwMTkxMTQwMGQzOSIsImVtYWlsIjoic21pdHJud0BnbWFpbC5jb20iLCJpYXQiOjE3NDcwNDI4MzQsImV4cCI6MTc0NzA0NjQzNH0.t1Xa4vZAi4C3ZdvV1AxgRMx8iV2cfyd4s1aDJKd7Yp4"
+      const token = localStorage.getItem('token')
       const response = await axios.post(
         `${apiUrl}/productAdd`,
         payload,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             // axios will handle Content-Type and boundary
           }
         }
       );
 
-      if (response.status === 200) {
+      console.log(response);
+
+
+      if (response.status >= 200 && response.status <= 299) {
         toast.success('Product added successfully!');
         navigate('/products');
       } else {

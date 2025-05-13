@@ -33,7 +33,6 @@ const AdminLayout = ({ children }) => {
     { name: 'Products', path: '/products', icon: <Package className="h-5 w-5" /> },
     { name: 'Users', path: '/users', icon: <Users className="h-5 w-5" /> },
     { name: 'Account', path: '/account', icon: <User className="h-5 w-5" /> },
-    { name: 'Settings', path: '/settings', icon: <Settings className="h-5 w-5" /> }
   ];
 
   const mockNotifications = [
@@ -150,7 +149,7 @@ const AdminLayout = ({ children }) => {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
-          <div className="px-4 py-3 flex items-center justify-between">
+          <div className="px-5 py-3 flex items-center justify-end">
             <button
               className="p-1 rounded-md lg:hidden text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400"
               onClick={toggleSidebar}
@@ -170,43 +169,6 @@ const AdminLayout = ({ children }) => {
                   <Moon className="h-5 w-5 text-gray-500" />
                 )}
               </button>
-
-              {/* Notifications */}
-              <div className="relative">
-                <button
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  onClick={() => {
-                    setNotificationsOpen(!notificationsOpen);
-                    setProfileOpen(false);
-                  }}
-                >
-                  <Bell className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                  <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-500 border-2 border-white dark:border-gray-800"></span>
-                </button>
-
-                {notificationsOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-20 border border-gray-200 dark:border-gray-700">
-                    <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Notifications</h3>
-                    </div>
-
-                    <div className="max-h-60 overflow-y-auto">
-                      {mockNotifications.map((notification) => (
-                        <div key={notification.id} className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                          <div className="text-sm text-gray-700 dark:text-gray-300">{notification.content}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{notification.time}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700">
-                      <button className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors">
-                        View all notifications
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
 
               {/* Profile dropdown */}
               <div className="relative">
