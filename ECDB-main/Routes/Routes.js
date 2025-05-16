@@ -15,8 +15,8 @@ const ProductController = require("../Controller/ProductController");
 const upload = require('../upload');
 
 router.post("/productAdd", jwtAuthMiddleware, upload.single('image'), ProductController.productAdd);
-router.get("/getAllProducts", jwtAuthMiddleware, ProductController.getAllProducts);
-router.get("/getSingleProduct/:id", jwtAuthMiddleware, ProductController.getSingleProduct);
+router.get("/getAllProducts", ProductController.getAllProducts);
+router.get("/getSingleProduct/:id", ProductController.getSingleProduct);
 router.put("/updateProduct/:id", jwtAuthMiddleware, upload.single('image'), ProductController.updateProduct);
 router.delete("/deleteProduct/:id", jwtAuthMiddleware, ProductController.deleteProduct);
 

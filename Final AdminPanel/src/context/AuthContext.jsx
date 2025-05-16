@@ -9,6 +9,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const dbUrl = import.meta.env.VITE_DB_URL || '';
 
   useEffect(() => {
     // Check if user is stored in localStorage
@@ -22,7 +23,6 @@ export const AuthProvider = ({ children }) => {
   const login = (email, password) => {
     return new Promise(async (resolve, reject) => {
       try {
-        const dbUrl = import.meta.env.VITE_DB_URL || '';
         console.log(dbUrl);
 
         const dbResponse = await axios.get(`${dbUrl}/adminCredentials`);
@@ -56,10 +56,10 @@ export const AuthProvider = ({ children }) => {
               name: matchedUser.name || 'Admin User',
               email: matchedUser.email,
               role: matchedUser.role || 'admin',
-              profilePicture: matchedUser.profilePicture || null
+              profilePicture: matchedUser.profilePicture || null,
+              token: response.data.token
             };
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            localStorage.setItem('token', response.data.token)
+            sessionStorage.setItem('currentUser', JSON.stringify(user));
             setCurrentUser(user);
             toast.success('Login successful');
             resolve(user);
@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         toast.error('Login failed. Server error.');
-        console.log("server error in authcontext login fucntio   n");
+        console.log("server error in authcontext login fucntion");
         reject(error);
       }
     });
@@ -92,7 +92,7 @@ export const AuthProvider = ({ children }) => {
         profilePicture: null
       };
 
-      const response = await axios.post("http://localhost:3000/adminCredentials", user);
+      const response = await axios.post(`${dbUrl}/adminCredentials`, user);
       console.log('User saved to db:', response.data);
 
       localStorage.setItem('currentUser', JSON.stringify(response.data));

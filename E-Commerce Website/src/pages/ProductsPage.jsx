@@ -3,9 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FiGrid, FiList, FiFilter, FiX, FiChevronDown } from 'react-icons/fi'
 import ProductCard from '../components/products/ProductCard'
-
-// Sample product data for demonstration
-import { featuredProducts } from '../data/products'
+import axios from 'axios'
 
 const ProductsPage = () => {
   const [searchParams] = useSearchParams()
@@ -24,50 +22,84 @@ const ProductsPage = () => {
   // Get category from URL params
   const category = searchParams.get('category')
   const search = searchParams.get('search')
+  const apiUrl = import.meta.env.VITE_API_URL || ''
 
   useEffect(() => {
-    // In a real app, this would fetch products from an API
-    // Simulating API call
-    setLoading(true)
-    setTimeout(() => {
-      let filteredProducts = [...featuredProducts]
-      
-      // Filter by category if provided
-      if (category) {
-        filteredProducts = filteredProducts.filter(product => 
-          product.tags.includes(category.toLowerCase())
-        )
+    const fetchData = async () => {
+      setLoading(true)
+      try {
+        // Fix the template literal syntax
+        const response = await axios.get(`${apiUrl}/getAllProducts`)
+        console.log(response.data, "fetched product data")
+
+        let filteredProducts = [...response.data]
+
+        // Filter by category if provided
+        if (category) {
+          filteredProducts = filteredProducts.filter(product =>
+            product.category === category.toLowerCase()
+          )
+        }
+
+        // Filter by search query if provided
+        if (search) {
+          filteredProducts = filteredProducts.filter(product =>
+            product.title.toLowerCase().includes(search.toLowerCase())
+          )
+        }
+
+        // Apply sorting based on current sortBy state
+        sortProducts(filteredProducts, sortBy)
+
+        setProducts(filteredProducts)
+      } catch (error) {
+        console.error("Error fetching products:", error)
+        setProducts([])
+      } finally {
+        setLoading(false)
       }
-      
-      // Filter by search query if provided
-      if (search) {
-        filteredProducts = filteredProducts.filter(product => 
-          product.name.toLowerCase().includes(search.toLowerCase())
-        )
-      }
-      
-      // Add more products for demonstration
-      const duplicatedProducts = [...filteredProducts]
-      for (let i = 0; i < 2; i++) {
-        duplicatedProducts.forEach(product => {
-          filteredProducts.push({
-            ...product,
-            id: product.id + featuredProducts.length * (i + 1)
-          })
-        })
-      }
-      
-      setProducts(filteredProducts)
-      setLoading(false)
-    }, 800)
-    
+    }
+
+    fetchData()
+
     // Set page title
-    document.title = category 
+    document.title = category
       ? `${category.charAt(0).toUpperCase() + category.slice(1)} Products - ShopWorld`
       : search
-      ? `Search results for "${search}" - ShopWorld`
-      : 'All Products - ShopWorld'
-  }, [category, search])
+        ? `Search results for "${search}" - ShopWorld`
+        : 'All Products - ShopWorld'
+
+  }, [category, search, apiUrl])
+
+  // Sort products when sort option changes
+  useEffect(() => {
+    if (products.length > 0) {
+      const sortedProducts = [...products]
+      sortProducts(sortedProducts, sortBy)
+      setProducts(sortedProducts)
+    }
+  }, [sortBy])
+
+  const sortProducts = (productsToSort, sortOption) => {
+    switch (sortOption) {
+      case 'price-low':
+        productsToSort.sort((a, b) => a.price - b.price)
+        break
+      case 'price-high':
+        productsToSort.sort((a, b) => b.price - a.price)
+        break
+      case 'newest':
+        productsToSort.sort((a, b) =>
+          new Date(b.createdAt) - new Date(a.createdAt)
+        )
+        break
+      case 'popularity':
+      default:
+        // Keep original order or implement your popularity logic
+        break
+    }
+    return productsToSort
+  }
 
   const toggleFilterSection = (section) => {
     setExpandedFilters({
@@ -75,25 +107,9 @@ const ProductsPage = () => {
       [section]: !expandedFilters[section]
     })
   }
-  
+
   const handleSortChange = (e) => {
     setSortBy(e.target.value)
-    
-    // In a real app, this would fetch sorted products or sort locally
-    // For demo, just simulate different sorting
-    const sortedProducts = [...products]
-    
-    if (e.target.value === 'price-low') {
-      sortedProducts.sort((a, b) => 
-        (a.discountedPrice || a.price) - (b.discountedPrice || b.price)
-      )
-    } else if (e.target.value === 'price-high') {
-      sortedProducts.sort((a, b) => 
-        (b.discountedPrice || b.price) - (a.discountedPrice || a.price)
-      )
-    }
-    
-    setProducts(sortedProducts)
   }
 
   const containerVariants = {
@@ -112,24 +128,24 @@ const ProductsPage = () => {
         {/* Page header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-neutral-800">
-            {category 
+            {category
               ? `${category.charAt(0).toUpperCase() + category.slice(1)} Products`
               : search
-              ? `Search results for "${search}"`
-              : 'All Products'}
+                ? `Search results for "${search}"`
+                : 'All Products'}
           </h1>
           <p className="text-neutral-600 mt-2">
-            {loading 
+            {loading
               ? 'Finding the best products for you...'
               : `Showing ${products.length} products`}
           </p>
         </div>
-        
+
         {/* Filters and products container */}
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Mobile filter button */}
           <div className="lg:hidden">
-            <button 
+            <button
               className="w-full flex items-center justify-center space-x-2 bg-white border border-neutral-300 px-4 py-3 rounded-md"
               onClick={() => setFiltersOpen(!filtersOpen)}
             >
@@ -146,12 +162,12 @@ const ProductsPage = () => {
               )}
             </button>
           </div>
-          
+
           {/* Filters sidebar - mobile */}
-          <motion.div 
+          <motion.div
             className={`lg:hidden ${filtersOpen ? 'block' : 'hidden'}`}
             initial={{ height: 0, opacity: 0 }}
-            animate={{ 
+            animate={{
               height: filtersOpen ? 'auto' : 0,
               opacity: filtersOpen ? 1 : 0
             }}
@@ -159,19 +175,19 @@ const ProductsPage = () => {
           >
             <div className="bg-white border border-neutral-200 p-4 rounded-lg">
               <h2 className="font-bold text-lg mb-4">Filters</h2>
-              
+
               {/* Category filter */}
               <div className="mb-6">
-                <div 
+                <div
                   className="flex justify-between items-center cursor-pointer mb-2"
                   onClick={() => toggleFilterSection('categories')}
                 >
                   <h3 className="font-medium">Categories</h3>
-                  <FiChevronDown 
-                    className={`transition-transform ${expandedFilters.categories ? 'rotate-180' : ''}`} 
+                  <FiChevronDown
+                    className={`transition-transform ${expandedFilters.categories ? 'rotate-180' : ''}`}
                   />
                 </div>
-                
+
                 {expandedFilters.categories && (
                   <div className="space-y-2 pl-2">
                     <div className="flex items-center">
@@ -193,19 +209,19 @@ const ProductsPage = () => {
                   </div>
                 )}
               </div>
-              
+
               {/* Price filter */}
               <div className="mb-6">
-                <div 
+                <div
                   className="flex justify-between items-center cursor-pointer mb-2"
                   onClick={() => toggleFilterSection('price')}
                 >
                   <h3 className="font-medium">Price Range</h3>
-                  <FiChevronDown 
-                    className={`transition-transform ${expandedFilters.price ? 'rotate-180' : ''}`} 
+                  <FiChevronDown
+                    className={`transition-transform ${expandedFilters.price ? 'rotate-180' : ''}`}
                   />
                 </div>
-                
+
                 {expandedFilters.price && (
                   <div className="space-y-4 pl-2">
                     <div className="flex items-center">
@@ -227,28 +243,28 @@ const ProductsPage = () => {
                   </div>
                 )}
               </div>
-              
+
               <button className="w-full btn-primary">Apply Filters</button>
             </div>
           </motion.div>
-          
+
           {/* Filters sidebar - desktop */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <div className="bg-white border border-neutral-200 p-6 rounded-lg sticky top-28">
               <h2 className="font-bold text-lg mb-6">Filters</h2>
-              
+
               {/* Category filter */}
               <div className="mb-6">
-                <div 
+                <div
                   className="flex justify-between items-center cursor-pointer mb-3"
                   onClick={() => toggleFilterSection('categories')}
                 >
                   <h3 className="font-medium">Categories</h3>
-                  <FiChevronDown 
-                    className={`transition-transform ${expandedFilters.categories ? 'rotate-180' : ''}`} 
+                  <FiChevronDown
+                    className={`transition-transform ${expandedFilters.categories ? 'rotate-180' : ''}`}
                   />
                 </div>
-                
+
                 {expandedFilters.categories && (
                   <div className="space-y-2 pl-1">
                     <div className="flex items-center">
@@ -270,19 +286,19 @@ const ProductsPage = () => {
                   </div>
                 )}
               </div>
-              
+
               {/* Price filter */}
               <div className="mb-6">
-                <div 
+                <div
                   className="flex justify-between items-center cursor-pointer mb-3"
                   onClick={() => toggleFilterSection('price')}
                 >
                   <h3 className="font-medium">Price Range</h3>
-                  <FiChevronDown 
-                    className={`transition-transform ${expandedFilters.price ? 'rotate-180' : ''}`} 
+                  <FiChevronDown
+                    className={`transition-transform ${expandedFilters.price ? 'rotate-180' : ''}`}
                   />
                 </div>
-                
+
                 {expandedFilters.price && (
                   <div className="space-y-2 pl-1">
                     <div className="flex items-center">
@@ -304,19 +320,19 @@ const ProductsPage = () => {
                   </div>
                 )}
               </div>
-              
+
               {/* Brand filter */}
               <div className="mb-6">
-                <div 
+                <div
                   className="flex justify-between items-center cursor-pointer mb-3"
                   onClick={() => toggleFilterSection('brand')}
                 >
                   <h3 className="font-medium">Brand</h3>
-                  <FiChevronDown 
-                    className={`transition-transform ${expandedFilters.brand ? 'rotate-180' : ''}`} 
+                  <FiChevronDown
+                    className={`transition-transform ${expandedFilters.brand ? 'rotate-180' : ''}`}
                   />
                 </div>
-                
+
                 {expandedFilters.brand && (
                   <div className="space-y-2 pl-1">
                     <div className="flex items-center">
@@ -338,19 +354,19 @@ const ProductsPage = () => {
                   </div>
                 )}
               </div>
-              
+
               {/* Rating filter */}
               <div className="mb-6">
-                <div 
+                <div
                   className="flex justify-between items-center cursor-pointer mb-3"
                   onClick={() => toggleFilterSection('rating')}
                 >
                   <h3 className="font-medium">Customer Rating</h3>
-                  <FiChevronDown 
-                    className={`transition-transform ${expandedFilters.rating ? 'rotate-180' : ''}`} 
+                  <FiChevronDown
+                    className={`transition-transform ${expandedFilters.rating ? 'rotate-180' : ''}`}
                   />
                 </div>
-                
+
                 {expandedFilters.rating && (
                   <div className="space-y-2 pl-1">
                     <div className="flex items-center">
@@ -368,24 +384,24 @@ const ProductsPage = () => {
                   </div>
                 )}
               </div>
-              
+
               <button className="w-full btn-primary">Apply Filters</button>
             </div>
           </div>
-          
+
           {/* Products section */}
           <div className="flex-1">
             {/* Toolbar */}
             <div className="bg-white border border-neutral-200 p-4 rounded-lg mb-6 flex flex-col sm:flex-row justify-between items-center">
               <div className="flex items-center space-x-3 mb-4 sm:mb-0">
-                <button 
+                <button
                   className={`p-2 rounded ${viewMode === 'grid' ? 'bg-primary-100 text-primary-700' : 'hover:bg-neutral-100'}`}
                   onClick={() => setViewMode('grid')}
                   aria-label="Grid view"
                 >
                   <FiGrid size={20} />
                 </button>
-                <button 
+                <button
                   className={`p-2 rounded ${viewMode === 'list' ? 'bg-primary-100 text-primary-700' : 'hover:bg-neutral-100'}`}
                   onClick={() => setViewMode('list')}
                   aria-label="List view"
@@ -396,7 +412,7 @@ const ProductsPage = () => {
                   Showing <span className="font-medium">{products.length}</span> products
                 </span>
               </div>
-              
+
               <div className="flex items-center">
                 <label htmlFor="sort-by" className="mr-2 text-neutral-700">Sort by:</label>
                 <select
@@ -412,16 +428,21 @@ const ProductsPage = () => {
                 </select>
               </div>
             </div>
-            
+
             {/* Products grid */}
             {loading ? (
               <div className="flex justify-center items-center h-64">
                 <div className="w-12 h-12 border-4 border-neutral-200 border-t-primary-600 rounded-full animate-spin"></div>
               </div>
+            ) : products.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-lg text-neutral-600">No products found.</p>
+                <p className="text-neutral-500 mt-2">Try adjusting your search or filters.</p>
+              </div>
             ) : (
-              <motion.div 
-                className={viewMode === 'grid' 
-                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" 
+              <motion.div
+                className={viewMode === 'grid'
+                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
                   : "space-y-6"
                 }
                 variants={containerVariants}
@@ -429,11 +450,11 @@ const ProductsPage = () => {
                 animate="visible"
               >
                 {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product._id} product={product} />
                 ))}
               </motion.div>
             )}
-            
+
             {/* Pagination */}
             {!loading && products.length > 0 && (
               <div className="mt-10 flex justify-center">

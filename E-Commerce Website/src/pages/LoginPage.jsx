@@ -2,13 +2,35 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FiMail, FiLock, FiEye, FiEyeOff, FiUser } from 'react-icons/fi'
+import axios from 'axios'
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  // Form state for login
+
+  const apiUrl = import.meta.env.VITE_API_URL || ''
+  const [loginData, setLoginData] = useState({
+    email: '',
+    password: '',
+    rememberMe: false
+  })
+
+  // Form state for registration
+  const [registerData, setRegisterData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  })
+
+  // UI state
   const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLogin, setIsLogin] = useState(true)
+
+  // Form validation states
+  const [passwordError, setPasswordError] = useState('')
+  const [confirmPasswordError, setConfirmPasswordError] = useState('')
 
   useEffect(() => {
     // Set page title
@@ -17,12 +39,123 @@ const LoginPage = () => {
     window.scrollTo(0, 0)
   }, [isLogin])
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    console.log('Form submitted:', { email, password, rememberMe })
-    // This would normally handle login/registration
+  // Handle input changes for login form
+  const handleLoginChange = (e) => {
+    const { name, value, type, checked } = e.target
+    setLoginData({
+      ...loginData,
+      [name]: type === 'checkbox' ? checked : value
+    })
   }
 
+  // Handle input changes for registration form
+  const handleRegisterChange = (e) => {
+    const { name, value } = e.target
+    setRegisterData({
+      ...registerData,
+      [name]: value
+    })
+
+    // Password validation
+    if (name === 'password') {
+      const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/
+      if (!passwordRegex.test(value)) {
+        setPasswordError('Password must be at least 8 characters with a number and special character')
+      } else {
+        setPasswordError('')
+      }
+
+      // Also check confirm password match
+      if (registerData.confirmPassword && value !== registerData.confirmPassword) {
+        setConfirmPasswordError('Passwords do not match')
+      } else {
+        setConfirmPasswordError('')
+      }
+    }
+
+    // Confirm password validation
+    if (name === 'confirmPassword') {
+      if (value !== registerData.password) {
+        setConfirmPasswordError('Passwords do not match')
+      } else {
+        setConfirmPasswordError('')
+      }
+    }
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    if (isLogin) {
+      // LOGIN FLOW
+      try {
+        const response = await axios.post(`${apiUrl}/login`, {
+          email: loginData.email,
+          password: loginData.password
+        })
+
+        const token = response.data.token
+        const user = {
+          email: loginData.email,
+          token: token
+        }
+
+        // Store token securely
+        if (loginData.rememberMe) {
+          localStorage.setItem("currentUser", JSON.stringify(user))
+        } else {
+          sessionStorage.setItem("currentUser", JSON.stringify(user))
+        }
+
+        console.log("Login successful:", user)
+        // Redirect user or update UI here
+
+      } catch (error) {
+        console.error("Login failed:", error.response?.data || error.message)
+        alert("Login failed. Please check your credentials.")
+      }
+
+    } else {
+      // REGISTER FLOW
+      if (passwordError || confirmPasswordError) return
+      if (registerData.password !== registerData.confirmPassword) {
+        setConfirmPasswordError('Passwords do not match')
+        return
+      }
+
+      try {
+        const userData = {
+          name: registerData.firstName,
+          lastName: registerData.lastName,
+          email: registerData.email,
+          password: registerData.password
+        }
+
+        const response = await axios.post(`${apiUrl}/register`, userData)
+
+        const token = response.data.token
+        const user = {
+          name: registerData.firstName,
+          lastName: registerData.lastName,
+          email: registerData.email,
+          token: token
+        }
+
+        // Save token in session storage
+        sessionStorage.setItem("currentUser", JSON.stringify(user))
+
+        console.log("Registration successful:", user)
+        // Optionally switch to login mode or redirect
+        setIsLogin(true)
+
+      } catch (error) {
+        console.error("Registration failed:", error.response?.data || error.message)
+        alert("Registration failed. Try a different email.")
+      }
+    }
+  }
+
+  // UI animation variants
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -45,10 +178,18 @@ const LoginPage = () => {
     }
   }
 
+  // Toggle between login and register mode
+  const toggleMode = (mode) => {
+    setIsLogin(mode)
+    // Reset any validation errors
+    setPasswordError('')
+    setConfirmPasswordError('')
+  }
+
   return (
     <div className="py-12">
       <div className="container-custom max-w-md mx-auto">
-        <motion.div 
+        <motion.div
           className="bg-white rounded-lg shadow-md overflow-hidden"
           variants={containerVariants}
           initial="hidden"
@@ -56,54 +197,76 @@ const LoginPage = () => {
         >
           {/* Header tabs */}
           <div className="flex">
-            <button 
-              className={`flex-1 py-4 font-medium text-center ${
-                isLogin ? 'bg-primary-600 text-white' : 'bg-neutral-100 text-neutral-600'
-              }`}
-              onClick={() => setIsLogin(true)}
+            <button
+              className={`flex-1 py-4 font-medium text-center ${isLogin ? 'bg-primary-600 text-white' : 'bg-neutral-100 text-neutral-600'}`}
+              onClick={() => toggleMode(true)}
             >
               Sign In
             </button>
-            <button 
-              className={`flex-1 py-4 font-medium text-center ${
-                !isLogin ? 'bg-primary-600 text-white' : 'bg-neutral-100 text-neutral-600'
-              }`}
-              onClick={() => setIsLogin(false)}
+            <button
+              className={`flex-1 py-4 font-medium text-center ${!isLogin ? 'bg-primary-600 text-white' : 'bg-neutral-100 text-neutral-600'}`}
+              onClick={() => toggleMode(false)}
             >
               Create Account
             </button>
           </div>
-          
+
           <div className="p-8">
-            <motion.h1 
+            <motion.h1
               className="text-2xl font-bold text-neutral-800 mb-6 text-center"
               variants={itemVariants}
             >
               {isLogin ? 'Welcome back' : 'Create your account'}
             </motion.h1>
-            
+
             <motion.form onSubmit={handleSubmit} variants={containerVariants}>
-              {/* Name field (only for registration) */}
+              {/* Registration fields */}
               {!isLogin && (
-                <motion.div className="mb-4" variants={itemVariants}>
-                  <label htmlFor="name" className="block text-sm font-medium text-neutral-700 mb-1">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
-                      <FiUser />
-                    </span>
-                    <input
-                      type="text"
-                      id="name"
-                      className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      placeholder="Enter your full name"
-                      required
-                    />
-                  </div>
-                </motion.div>
+                <>
+                  <motion.div className="mb-4" variants={itemVariants}>
+                    <label htmlFor="firstName" className="block text-sm font-medium text-neutral-700 mb-1">
+                      First Name
+                    </label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
+                        <FiUser />
+                      </span>
+                      <input
+                        type="text"
+                        id="firstName"
+                        name="firstName"
+                        value={registerData.firstName}
+                        onChange={handleRegisterChange}
+                        className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Enter your first name"
+                        required
+                      />
+                    </div>
+                  </motion.div>
+
+                  <motion.div className="mb-4" variants={itemVariants}>
+                    <label htmlFor="lastName" className="block text-sm font-medium text-neutral-700 mb-1">
+                      Last Name
+                    </label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
+                        <FiUser />
+                      </span>
+                      <input
+                        type="text"
+                        id="lastName"
+                        name="lastName"
+                        value={registerData.lastName}
+                        onChange={handleRegisterChange}
+                        className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Enter your last name"
+                        required
+                      />
+                    </div>
+                  </motion.div>
+                </>
               )}
-              
+
               {/* Email field */}
               <motion.div className="mb-4" variants={itemVariants}>
                 <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-1">
@@ -116,17 +279,18 @@ const LoginPage = () => {
                   <input
                     type="email"
                     id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    name="email"
+                    value={isLogin ? loginData.email : registerData.email}
+                    onChange={isLogin ? handleLoginChange : handleRegisterChange}
                     className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     placeholder="Enter your email"
                     required
                   />
                 </div>
               </motion.div>
-              
+
               {/* Password field */}
-              <motion.div className="mb-6" variants={itemVariants}>
+              <motion.div className="mb-4" variants={itemVariants}>
                 <div className="flex justify-between mb-1">
                   <label htmlFor="password" className="block text-sm font-medium text-neutral-700">
                     Password
@@ -144,9 +308,11 @@ const LoginPage = () => {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-10 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    name="password"
+                    value={isLogin ? loginData.password : registerData.password}
+                    onChange={isLogin ? handleLoginChange : handleRegisterChange}
+                    className={`w-full pl-10 pr-10 py-2 border ${!isLogin && passwordError ? 'border-red-500' : 'border-neutral-300'
+                      } rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
                     placeholder={isLogin ? 'Enter your password' : 'Create a password'}
                     required
                   />
@@ -159,28 +325,64 @@ const LoginPage = () => {
                   </button>
                 </div>
                 {!isLogin && (
-                  <p className="text-xs text-neutral-500 mt-1">
-                    Password must be at least 8 characters long and include a number and a special character.
+                  <p className={`text-xs ${passwordError ? 'text-red-500' : 'text-neutral-500'} mt-1`}>
+                    {passwordError || 'Password must be at least 8 characters long and include a number and a special character.'}
                   </p>
                 )}
               </motion.div>
-              
+
+              {/* Confirm Password field (only for registration) */}
+              {!isLogin && (
+                <motion.div className="mb-4" variants={itemVariants}>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-700 mb-1">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
+                      <FiLock />
+                    </span>
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      value={registerData.confirmPassword}
+                      onChange={handleRegisterChange}
+                      className={`w-full pl-10 pr-10 py-2 border ${confirmPasswordError ? 'border-red-500' : 'border-neutral-300'
+                        } rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
+                      placeholder="Confirm your password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-neutral-500"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                    </button>
+                  </div>
+                  {confirmPasswordError && (
+                    <p className="text-xs text-red-500 mt-1">{confirmPasswordError}</p>
+                  )}
+                </motion.div>
+              )}
+
               {/* Remember me checkbox (only for login) */}
               {isLogin && (
                 <motion.div className="mb-6 flex items-center" variants={itemVariants}>
                   <input
                     type="checkbox"
-                    id="remember-me"
-                    checked={rememberMe}
-                    onChange={() => setRememberMe(!rememberMe)}
+                    id="rememberMe"
+                    name="rememberMe"
+                    checked={loginData.rememberMe}
+                    onChange={handleLoginChange}
                     className="h-4 w-4 text-primary-600 border-neutral-300 rounded focus:ring-primary-500"
                   />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-neutral-700">
+                  <label htmlFor="rememberMe" className="ml-2 block text-sm text-neutral-700">
                     Remember me
                   </label>
                 </motion.div>
               )}
-              
+
               {/* Submit button */}
               <motion.button
                 type="submit"
@@ -191,7 +393,7 @@ const LoginPage = () => {
               >
                 {isLogin ? 'Sign In' : 'Create Account'}
               </motion.button>
-              
+
               {/* Social login options */}
               <motion.div className="mt-6" variants={itemVariants}>
                 <div className="relative">
@@ -204,7 +406,7 @@ const LoginPage = () => {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="mt-6 grid grid-cols-2 gap-3">
                   <button
                     type="button"
