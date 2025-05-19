@@ -10,7 +10,10 @@ const ProductCard = ({ product }) => {
   const [isLiked, setIsLiked] = useState(false)
   const imageUrl = import.meta.env.VITE_IMAGE_URL || ''
   const apiUrl = import.meta.env.VITE_API_URL || ''
-  const token = JSON.parse(sessionStorage.getItem("currentUser")).token
+  // const tokenData = JSON.parse(sessionStorage.getItem("currentUser"))
+  // const token = tokenData.token
+
+  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MmFiMzY0MTgwZThhYjk0YmU0MGZhNSIsImVtYWlsIjoidXNlckBnbWFpbC5jb20iLCJpYXQiOjE3NDc2Mjg5MjEsImV4cCI6MTc0NzYzMjUyMX0.YV0mN1cQqPYhqAXMrZRifdHIznqB4NJZPddzDinfSpk"
 
 
   // Safety checks for missing properties
@@ -216,7 +219,7 @@ const ProductCard = ({ product }) => {
 
 ProductCard.propTypes = {
   product: PropTypes.shape({
-    _id: PropTypes.string.isRequired,
+    _id: PropTypes.string,
     title: PropTypes.string.isRequired,
     price: PropTypes.number.isRequired,
     description: PropTypes.string,

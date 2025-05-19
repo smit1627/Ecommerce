@@ -15,6 +15,8 @@ const EditProduct = () => {
     price: '',
     stock: ''
   });
+  const tokenData = JSON.parse(sessionStorage.getItem('currentUser'))
+  const token = tokenData.token
 
   const apiUrl = import.meta.env.VITE_API_URL || ''
 
@@ -35,7 +37,7 @@ const EditProduct = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token');
+
         const response = await axios.get(`${apiUrl}/getSingleProduct/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -62,7 +64,6 @@ const EditProduct = () => {
     e.preventDefault();
 
     try {
-      const token = localStorage.getItem('token');
       const formPayload = new FormData();
 
       // Append data

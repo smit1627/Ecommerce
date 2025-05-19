@@ -73,11 +73,12 @@ const Products = () => {
   const deleteModal = useModal();
   const apiUrl = import.meta.env.VITE_API_URL || '';
   const imageUrl = import.meta.env.VITE_IMAGE_URL || ''
+  const tokenData = JSON.parse(sessionStorage.getItem('currentUser'))
+  const token = tokenData.token
 
   const productsPerPage = 10;
   const getProductData = async () => {
     try {
-      const token = localStorage.getItem('token');
       console.log('Fetched token:', token); // Add this
       if (!token) {
         throw new Error('Token not found in localStorage');
@@ -154,7 +155,6 @@ const Products = () => {
   };
 
   const confirmDelete = async () => {
-    const token = localStorage.getItem('token')
     const { _id } = productToDelete;
 
     const response = await axios.delete(`${apiUrl}/deleteProduct/${_id}`, {

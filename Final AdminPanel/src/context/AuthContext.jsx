@@ -12,8 +12,8 @@ export const AuthProvider = ({ children }) => {
   const dbUrl = import.meta.env.VITE_DB_URL || '';
 
   useEffect(() => {
-    // Check if user is stored in localStorage
-    const storedUser = localStorage.getItem('currentUser');
+    // Check if user is stored in sessionStorage
+    const storedUser = sessionStorage.getItem('currentUser');
     if (storedUser) {
       setCurrentUser(JSON.parse(storedUser));
     }
@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }) => {
       const response = await axios.post(`${dbUrl}/adminCredentials`, user);
       console.log('User saved to db:', response.data);
 
-      localStorage.setItem('currentUser', JSON.stringify(response.data));
+      sessionStorage.setItem('currentUser', JSON.stringify(response.data));
       setCurrentUser(response.data);
       toast.success('Registration successful');
 
@@ -109,15 +109,14 @@ export const AuthProvider = ({ children }) => {
 
 
   const logout = () => {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('token')
+    sessionStorage.removeItem('currentUser');
     setCurrentUser(null);
     toast.success('Logged out successfully');
   };
 
   const updateProfile = (updatedUserData) => {
     const updatedUser = { ...currentUser, ...updatedUserData };
-    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    sessionStorage.setItem('currentUser', JSON.stringify(updatedUser));
     setCurrentUser(updatedUser);
     toast.success('Profile updated successfully');
     return updatedUser;
@@ -125,7 +124,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfilePicture = (pictureUrl) => {
     const updatedUser = { ...currentUser, profilePicture: pictureUrl };
-    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    sessionStorage.setItem('currentUser', JSON.stringify(updatedUser));
     setCurrentUser(updatedUser);
     toast.success('Profile picture updated');
     return updatedUser;

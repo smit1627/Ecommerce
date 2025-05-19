@@ -70,13 +70,13 @@ const ProductDetail = () => {
   const [activeTab, setActiveTab] = useState('details');
   const imageUrl = import.meta.env.VITE_IMAGE_URL || ''
   const apiUrl = import.meta.env.VITE_API_URL || ''
+  const tokenData = JSON.parse(sessionStorage.getItem('currentUser'))
+  const token = tokenData.token
 
   useEffect(() => {
     const fetchAll = async () => {
       setIsLoading(true);
       try {
-        const token = localStorage.getItem('token')
-        console.log(token);
 
         const response = await axios.get(`${apiUrl}/getSingleProduct/${id}`, {
           headers: {
@@ -100,7 +100,6 @@ const ProductDetail = () => {
   const deleteModal = useModal();
 
   const handleDelete = async () => {
-    const token = localStorage.getItem('token')
 
     const response = await axios.delete(`${apiUrl}/deleteProduct/${product._id}`, {
       headers: {

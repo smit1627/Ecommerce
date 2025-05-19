@@ -48,7 +48,9 @@ const AddProduct = () => {
       payload.append('image', imageFile);
 
       const apiUrl = import.meta.env.VITE_API_URL || '';
-      const token = localStorage.getItem('token')
+      const tokenData = JSON.parse(sessionStorage.getItem('currentUser'))
+      const token = tokenData.token
+
       const response = await axios.post(
         `${apiUrl}/productAdd`,
         payload,
