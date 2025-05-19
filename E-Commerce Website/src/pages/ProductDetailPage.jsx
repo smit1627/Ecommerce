@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { 
-  FiShoppingCart, 
-  FiHeart, 
-  FiShare2, 
-  FiStar, 
-  FiCheck, 
-  FiTruck, 
-  FiPackage, 
-  FiRefreshCw 
+import {
+  FiShoppingCart,
+  FiHeart,
+  FiShare2,
+  FiStar,
+  FiCheck,
+  FiTruck,
+  FiPackage,
+  FiRefreshCw
 } from 'react-icons/fi'
 
 // Import sample data
 import { featuredProducts } from '../data/products'
+import axios from 'axios'
 
 const ProductDetailPage = () => {
   const { id } = useParams()
@@ -23,51 +24,53 @@ const ProductDetailPage = () => {
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState('description')
   const [isLiked, setIsLiked] = useState(false)
-  
+
   // For demo purposes, create multiple images
   const [productImages, setProductImages] = useState([])
+  const apiUrl = import.meta.env.VITE_API_URL || ''
+  const imageUrl = import.meta.env.VITE_IMAGE_URL || ''
 
-  useEffect(() => {
-    // Scroll to top
-    window.scrollTo(0, 0)
-    
-    // In a real app, you'd fetch product by ID from API
-    // For demo, we'll use the featured products data
-    setLoading(true)
-    setTimeout(() => {
-      const foundProduct = featuredProducts.find(p => p.id === parseInt(id))
-      
-      if (foundProduct) {
-        setProduct(foundProduct)
-        
-        // Create multiple images for demo
-        const images = [
-          foundProduct.imageUrl,
-          // Additional similar images for the gallery
-          "https://images.pexels.com/photos/3780681/pexels-photo-3780681.jpeg",
-          "https://images.pexels.com/photos/577769/pexels-photo-577769.jpeg",
-          "https://images.pexels.com/photos/3829441/pexels-photo-3829441.jpeg",
-        ]
-        setProductImages(images)
-        document.title = `${foundProduct.name} - ShopWorld`
+  const getSingleProduct = async () => {
+    try {
+      const response = await axios.get(`${apiUrl}/getSingleProduct/${id}`)
+      console.log(response.data)
+
+      if (response.data) {
+        setProduct(response.data)
+        setProductImages([`${imageUrl}/${response.data.image}`])
+
+        document.title = `${response.data.title} - ShopWorld`
       } else {
+        // Handle no product found
+        setProduct(null)
+        setProductImages([])
         document.title = 'Product Not Found - ShopWorld'
       }
-      
-      setLoading(false)
-    }, 800)
+      setLoading(false) // Set loading to false on success
+    } catch (error) {
+      console.error('Error fetching product:', error)
+      setProduct(null)
+      setProductImages([])
+      document.title = 'Product Not Found - ShopWorld'
+      setLoading(false) // Set loading to false on error
+    }
+  }
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+    getSingleProduct()
   }, [id])
 
   const handleQuantityChange = (value) => {
     if (value < 1) return
     setQuantity(value)
   }
-  
+
   const handleAddToCart = () => {
     console.log(`Added ${quantity} of ${product.name} to cart`)
     // In a real app, this would add to cart functionality
   }
-  
+
   const toggleWishlist = () => {
     setIsLiked(!isLiked)
     // In a real app, this would toggle wishlist status
@@ -109,12 +112,12 @@ const ProductDetailPage = () => {
                 <span className="mx-2">/</span>
               </li>
               <li className="flex items-center">
-                <span className="text-neutral-800 font-medium">{product.name}</span>
+                <span className="text-neutral-800 font-medium">{product.title}</span>
               </li>
             </ol>
           </nav>
         </div>
-        
+
         {/* Product detail */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 p-6">
@@ -122,15 +125,15 @@ const ProductDetailPage = () => {
             <div className="lg:col-span-2">
               <div className="flex flex-col">
                 {/* Main image */}
-                <motion.div 
+                <motion.div
                   className="relative aspect-square bg-neutral-100 rounded-lg overflow-hidden mb-4"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <img 
-                    src={productImages[selectedImage]} 
-                    alt={product.name} 
+                  <img
+                    src={productImages[selectedImage]}
+                    alt={product.name}
                     className="w-full h-full object-contain"
                   />
                   {product.isOnSale && (
@@ -139,22 +142,21 @@ const ProductDetailPage = () => {
                     </div>
                   )}
                 </motion.div>
-                
+
                 {/* Thumbnail images */}
                 <div className="flex space-x-2">
                   {productImages.map((image, index) => (
                     <button
                       key={index}
-                      className={`w-20 h-20 rounded-md overflow-hidden ${
-                        selectedImage === index 
-                          ? 'ring-2 ring-primary-600' 
-                          : 'ring-1 ring-neutral-200'
-                      }`}
+                      className={`w-20 h-20 rounded-md overflow-hidden ${selectedImage === index
+                        ? 'ring-2 ring-primary-600'
+                        : 'ring-1 ring-neutral-200'
+                        }`}
                       onClick={() => setSelectedImage(index)}
                     >
-                      <img 
-                        src={image} 
-                        alt={`Product view ${index + 1}`} 
+                      <img
+                        src={image}
+                        alt={`Product view ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
                     </button>
@@ -162,7 +164,7 @@ const ProductDetailPage = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Product Info */}
             <div className="lg:col-span-3">
               <div className="flex flex-col h-full">
@@ -171,23 +173,22 @@ const ProductDetailPage = () => {
                   <h1 className="text-2xl sm:text-3xl font-bold text-neutral-800 mb-2">
                     {product.name}
                   </h1>
-                  
+
                   <div className="flex items-center mb-4">
                     <div className="flex items-center">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <FiStar
                           key={i}
-                          className={`w-5 h-5 ${
-                            i < Math.floor(product.rating) 
-                              ? 'text-yellow-400 fill-yellow-400' 
-                              : 'text-neutral-300'
-                          }`}
+                          className={`w-5 h-5 ${i < Math.floor(product.rating)
+                            ? 'text-yellow-400 fill-yellow-400'
+                            : 'text-neutral-300'
+                            }`}
                         />
                       ))}
                     </div>
                     <span className="ml-2 text-neutral-500">{product.rating} ({product.reviewCount} reviews)</span>
                   </div>
-                  
+
                   {/* Price */}
                   <div className="flex items-center mb-6">
                     {product.discountedPrice ? (
@@ -200,15 +201,11 @@ const ProductDetailPage = () => {
                       <span className="text-2xl font-bold text-neutral-800">${product.price}</span>
                     )}
                   </div>
-                  
+
                   {/* Short description */}
-                  <p className="text-neutral-600 mb-6">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. 
-                    Sed euismod, nisl eget ultricies ultricies, nisl nisl aliquam nisl, eget
-                    aliquam nisl nisl eget nisl. Sed euismod, nisl eget ultricies ultricies.
-                  </p>
-                  
-                  {/* Variants (if applicable) */}
+                  <p className="text-neutral-600 mb-6 capitalize">{product.description}</p>
+
+                  {/* Variants (if applicable)
                   <div className="mb-6">
                     <h3 className="font-medium text-neutral-800 mb-2">Available Colors:</h3>
                     <div className="flex space-x-3">
@@ -217,27 +214,27 @@ const ProductDetailPage = () => {
                       <button className="w-8 h-8 rounded-full bg-blue-600"></button>
                       <button className="w-8 h-8 rounded-full bg-red-600"></button>
                     </div>
-                  </div>
-                  
+                  </div> */}
+
                   {/* Quantity selector */}
                   <div className="mb-6">
                     <h3 className="font-medium text-neutral-800 mb-2">Quantity:</h3>
                     <div className="flex items-center">
-                      <button 
+                      <button
                         className="w-10 h-10 border border-neutral-300 flex items-center justify-center rounded-l-md bg-neutral-50 hover:bg-neutral-100 transition-colors"
                         onClick={() => handleQuantityChange(quantity - 1)}
                         disabled={quantity <= 1}
                       >
                         -
                       </button>
-                      <input 
-                        type="number" 
-                        min="1" 
-                        value={quantity} 
+                      <input
+                        type="number"
+                        min="1"
+                        value={quantity}
                         onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
-                        className="w-16 h-10 border-y border-neutral-300 text-center focus:outline-none"
+                        className="w-16 h-10 border-y border-neutral-300 text-center focus:outline-none no-spin"
                       />
-                      <button 
+                      <button
                         className="w-10 h-10 border border-neutral-300 flex items-center justify-center rounded-r-md bg-neutral-50 hover:bg-neutral-100 transition-colors"
                         onClick={() => handleQuantityChange(quantity + 1)}
                       >
@@ -245,7 +242,7 @@ const ProductDetailPage = () => {
                       </button>
                     </div>
                   </div>
-                  
+
                   {/* Shipping & availability info */}
                   <div className="flex flex-col space-y-2 mb-6">
                     <div className="flex items-center text-sm text-neutral-700">
@@ -261,20 +258,19 @@ const ProductDetailPage = () => {
                       <span>Free returns within 30 days</span>
                     </div>
                   </div>
-                  
+
                   {/* Action buttons */}
                   <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-                    <button 
+                    <button
                       className="btn-primary flex-1 flex items-center justify-center py-3"
                       onClick={handleAddToCart}
                     >
                       <FiShoppingCart className="mr-2" />
                       Add to Cart
                     </button>
-                    <button 
-                      className={`btn-secondary flex items-center justify-center py-3 ${
-                        isLiked ? 'text-accent-600 border-accent-600' : ''
-                      }`}
+                    <button
+                      className={`btn-secondary flex items-center justify-center py-3 ${isLiked ? 'text-accent-600 border-accent-600' : ''
+                        }`}
                       onClick={toggleWishlist}
                     >
                       <FiHeart className={`mr-2 ${isLiked ? 'fill-accent-600' : ''}`} />
@@ -289,106 +285,38 @@ const ProductDetailPage = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Product tabs: Description, Specs, Reviews */}
           <div className="border-t border-neutral-200 mt-4">
             <div className="flex flex-wrap border-b border-neutral-200">
-              <button 
-                className={`px-6 py-3 font-medium text-sm ${
-                  activeTab === 'description' 
-                    ? 'text-primary-600 border-b-2 border-primary-600' 
-                    : 'text-neutral-600 hover:text-neutral-800'
-                }`}
+              <button
+                className={`px-6 py-3 font-medium text-sm ${activeTab === 'description'
+                  ? 'text-primary-600 border-b-2 border-primary-600'
+                  : 'text-neutral-600 hover:text-neutral-800'
+                  }`}
                 onClick={() => setActiveTab('description')}
               >
                 Description
               </button>
-              <button 
-                className={`px-6 py-3 font-medium text-sm ${
-                  activeTab === 'specifications' 
-                    ? 'text-primary-600 border-b-2 border-primary-600' 
-                    : 'text-neutral-600 hover:text-neutral-800'
-                }`}
-                onClick={() => setActiveTab('specifications')}
-              >
-                Specifications
-              </button>
-              <button 
-                className={`px-6 py-3 font-medium text-sm ${
-                  activeTab === 'reviews' 
-                    ? 'text-primary-600 border-b-2 border-primary-600' 
-                    : 'text-neutral-600 hover:text-neutral-800'
-                }`}
+              <button
+                className={`px-6 py-3 font-medium text-sm ${activeTab === 'reviews'
+                  ? 'text-primary-600 border-b-2 border-primary-600'
+                  : 'text-neutral-600 hover:text-neutral-800'
+                  }`}
                 onClick={() => setActiveTab('reviews')}
               >
                 Reviews ({product.reviewCount})
               </button>
             </div>
-            
+
             <div className="p-6">
               {activeTab === 'description' && (
                 <div className="prose max-w-none">
-                  <h3>Product Description</h3>
-                  <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. 
-                    Sed euismod, nisl eget ultricies ultricies, nisl nisl aliquam nisl, eget
-                    aliquam nisl nisl eget nisl. Sed euismod, nisl eget ultricies ultricies, 
-                    nisl nisl aliquam nisl, eget aliquam nisl nisl eget nisl.
-                  </p>
-                  <p>
-                    Nunc auctor, nisl eget ultricies ultricies, nisl nisl aliquam nisl, eget
-                    aliquam nisl nisl eget nisl. Sed euismod, nisl eget ultricies ultricies, 
-                    nisl nisl aliquam nisl, eget aliquam nisl nisl eget nisl. Nunc auctor, 
-                    nisl eget ultricies ultricies, nisl nisl aliquam nisl.
-                  </p>
-                  <h4>Key Features</h4>
-                  <ul>
-                    <li>High-quality materials and craftsmanship</li>
-                    <li>Innovative design for maximum comfort and functionality</li>
-                    <li>Versatile usage for various settings and occasions</li>
-                    <li>Durable construction for long-lasting performance</li>
-                    <li>Easy to maintain and clean</li>
-                  </ul>
+                  <h3 className='font-bold'>Product Description</h3>
+                  <p className='capitalize'>{product.description}</p>
                 </div>
               )}
-              
-              {activeTab === 'specifications' && (
-                <div className="overflow-hidden">
-                  <table className="min-w-full">
-                    <tbody className="bg-white">
-                      <tr className="border-b border-neutral-200">
-                        <td className="px-4 py-3 text-sm font-medium text-neutral-900 bg-neutral-50 w-1/3">Brand</td>
-                        <td className="px-4 py-3 text-sm text-neutral-700">Premium Brand</td>
-                      </tr>
-                      <tr className="border-b border-neutral-200">
-                        <td className="px-4 py-3 text-sm font-medium text-neutral-900 bg-neutral-50">Model</td>
-                        <td className="px-4 py-3 text-sm text-neutral-700">X-1000 Pro</td>
-                      </tr>
-                      <tr className="border-b border-neutral-200">
-                        <td className="px-4 py-3 text-sm font-medium text-neutral-900 bg-neutral-50">Dimensions</td>
-                        <td className="px-4 py-3 text-sm text-neutral-700">10" x 8" x 3"</td>
-                      </tr>
-                      <tr className="border-b border-neutral-200">
-                        <td className="px-4 py-3 text-sm font-medium text-neutral-900 bg-neutral-50">Weight</td>
-                        <td className="px-4 py-3 text-sm text-neutral-700">1.5 lbs</td>
-                      </tr>
-                      <tr className="border-b border-neutral-200">
-                        <td className="px-4 py-3 text-sm font-medium text-neutral-900 bg-neutral-50">Material</td>
-                        <td className="px-4 py-3 text-sm text-neutral-700">Premium-grade aluminum and polymer</td>
-                      </tr>
-                      <tr className="border-b border-neutral-200">
-                        <td className="px-4 py-3 text-sm font-medium text-neutral-900 bg-neutral-50">Color Options</td>
-                        <td className="px-4 py-3 text-sm text-neutral-700">Black, White, Blue, Red</td>
-                      </tr>
-                      <tr className="border-b border-neutral-200">
-                        <td className="px-4 py-3 text-sm font-medium text-neutral-900 bg-neutral-50">Warranty</td>
-                        <td className="px-4 py-3 text-sm text-neutral-700">2-year limited warranty</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              )}
-              
+
               {activeTab === 'reviews' && (
                 <div>
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
@@ -399,11 +327,10 @@ const ProductDetailPage = () => {
                           {Array.from({ length: 5 }).map((_, i) => (
                             <FiStar
                               key={i}
-                              className={`w-5 h-5 ${
-                                i < Math.floor(product.rating) 
-                                  ? 'text-yellow-400 fill-yellow-400' 
-                                  : 'text-neutral-300'
-                              }`}
+                              className={`w-5 h-5 ${i < Math.floor(product.rating)
+                                ? 'text-yellow-400 fill-yellow-400'
+                                : 'text-neutral-300'
+                                }`}
                             />
                           ))}
                         </div>
@@ -412,7 +339,7 @@ const ProductDetailPage = () => {
                     </div>
                     <button className="mt-4 md:mt-0 btn-primary">Write a Review</button>
                   </div>
-                  
+
                   {/* Sample reviews */}
                   <div className="space-y-6">
                     {/* Review 1 */}
@@ -425,11 +352,10 @@ const ProductDetailPage = () => {
                         {Array.from({ length: 5 }).map((_, i) => (
                           <FiStar
                             key={i}
-                            className={`w-4 h-4 ${
-                              i < 5
-                                ? 'text-yellow-400 fill-yellow-400' 
-                                : 'text-neutral-300'
-                            }`}
+                            className={`w-4 h-4 ${i < 5
+                              ? 'text-yellow-400 fill-yellow-400'
+                              : 'text-neutral-300'
+                              }`}
                           />
                         ))}
                       </div>
@@ -437,7 +363,7 @@ const ProductDetailPage = () => {
                         Excellent product! Exactly as described and arrived quickly. The quality is outstanding and I'm very happy with my purchase.
                       </p>
                     </div>
-                    
+
                     {/* Review 2 */}
                     <div className="border-b border-neutral-200 pb-6">
                       <div className="flex justify-between mb-2">
@@ -448,11 +374,10 @@ const ProductDetailPage = () => {
                         {Array.from({ length: 5 }).map((_, i) => (
                           <FiStar
                             key={i}
-                            className={`w-4 h-4 ${
-                              i < 4
-                                ? 'text-yellow-400 fill-yellow-400' 
-                                : 'text-neutral-300'
-                            }`}
+                            className={`w-4 h-4 ${i < 4
+                              ? 'text-yellow-400 fill-yellow-400'
+                              : 'text-neutral-300'
+                              }`}
                           />
                         ))}
                       </div>
@@ -460,7 +385,7 @@ const ProductDetailPage = () => {
                         Great product overall. Shipping was fast and packaging was secure. Only giving 4 stars because the color was slightly different than shown in the photos, but still very nice.
                       </p>
                     </div>
-                    
+
                     {/* Review 3 */}
                     <div>
                       <div className="flex justify-between mb-2">
@@ -471,11 +396,10 @@ const ProductDetailPage = () => {
                         {Array.from({ length: 5 }).map((_, i) => (
                           <FiStar
                             key={i}
-                            className={`w-4 h-4 ${
-                              i < 5
-                                ? 'text-yellow-400 fill-yellow-400' 
-                                : 'text-neutral-300'
-                            }`}
+                            className={`w-4 h-4 ${i < 5
+                              ? 'text-yellow-400 fill-yellow-400'
+                              : 'text-neutral-300'
+                              }`}
                           />
                         ))}
                       </div>
@@ -483,7 +407,7 @@ const ProductDetailPage = () => {
                         This product exceeded my expectations! The build quality is exceptional and it works perfectly. Customer service was also very helpful when I had questions. Highly recommend!
                       </p>
                     </div>
-                    
+
                     {/* See more reviews button */}
                     <div className="text-center mt-8">
                       <button className="btn-secondary">See All Reviews</button>
@@ -494,7 +418,7 @@ const ProductDetailPage = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Related products */}
         <div className="mt-12">
           <h2 className="section-title">You May Also Like</h2>
@@ -506,9 +430,9 @@ const ProductDetailPage = () => {
                 <Link key={relatedProduct.id} to={`/products/${relatedProduct.id}`}>
                   <div className="product-card">
                     <div className="relative overflow-hidden aspect-square">
-                      <img 
-                        src={relatedProduct.imageUrl} 
-                        alt={relatedProduct.name} 
+                      <img
+                        src={relatedProduct.imageUrl}
+                        alt={relatedProduct.name}
                         className="w-full h-full object-cover"
                       />
                       {relatedProduct.isOnSale && (
@@ -523,11 +447,10 @@ const ProductDetailPage = () => {
                         {Array.from({ length: 5 }).map((_, i) => (
                           <FiStar
                             key={i}
-                            className={`w-4 h-4 ${
-                              i < Math.floor(relatedProduct.rating) 
-                                ? 'text-yellow-400 fill-yellow-400' 
-                                : 'text-neutral-300'
-                            }`}
+                            className={`w-4 h-4 ${i < Math.floor(relatedProduct.rating)
+                              ? 'text-yellow-400 fill-yellow-400'
+                              : 'text-neutral-300'
+                              }`}
                           />
                         ))}
                       </div>

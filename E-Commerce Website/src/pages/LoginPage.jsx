@@ -1,18 +1,18 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { FiMail, FiLock, FiEye, FiEyeOff, FiUser } from 'react-icons/fi'
-import axios from 'axios'
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { FiMail, FiLock, FiEye, FiEyeOff, FiUser } from 'react-icons/fi';
+import axios from 'axios';
+import { useAuth } from '../components/Auth/AuthContext';
 
 const LoginPage = () => {
   // Form state for login
-
-  const apiUrl = import.meta.env.VITE_API_URL || ''
+  const apiUrl = import.meta.env.VITE_API_URL || '';
   const [loginData, setLoginData] = useState({
     email: '',
     password: '',
     rememberMe: false
-  })
+  });
 
   // Form state for registration
   const [registerData, setRegisterData] = useState({
@@ -21,139 +21,82 @@ const LoginPage = () => {
     email: '',
     password: '',
     confirmPassword: ''
-  })
+  });
 
   // UI state
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isLogin, setIsLogin] = useState(true)
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
 
   // Form validation states
-  const [passwordError, setPasswordError] = useState('')
-  const [confirmPasswordError, setConfirmPasswordError] = useState('')
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+  const [token, setToken] = useState('');
+  const [registerToken, setRegisterToken] = useState('');
+
+  const { login, register } = useAuth();
 
   useEffect(() => {
     // Set page title
-    document.title = isLogin ? 'Login - ShopWorld' : 'Create Account - ShopWorld'
+    document.title = isLogin ? 'Login - ShopWorld' : 'Create Account - ShopWorld';
     // Scroll to top
-    window.scrollTo(0, 0)
-  }, [isLogin])
+    window.scrollTo(0, 0);
+  }, [isLogin]);
 
   // Handle input changes for login form
   const handleLoginChange = (e) => {
-    const { name, value, type, checked } = e.target
+    const { name, value, type, checked } = e.target;
     setLoginData({
       ...loginData,
       [name]: type === 'checkbox' ? checked : value
-    })
-  }
+    });
+  };
 
   // Handle input changes for registration form
   const handleRegisterChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setRegisterData({
       ...registerData,
       [name]: value
-    })
+    });
 
     // Password validation
     if (name === 'password') {
-      const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/
+      const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
       if (!passwordRegex.test(value)) {
-        setPasswordError('Password must be at least 8 characters with a number and special character')
+        setPasswordError('Password must be at least 8 characters with a number and special character');
       } else {
-        setPasswordError('')
+        setPasswordError('');
       }
 
       // Also check confirm password match
       if (registerData.confirmPassword && value !== registerData.confirmPassword) {
-        setConfirmPasswordError('Passwords do not match')
+        setConfirmPasswordError('Passwords do not match');
       } else {
-        setConfirmPasswordError('')
+        setConfirmPasswordError('');
       }
     }
 
     // Confirm password validation
     if (name === 'confirmPassword') {
       if (value !== registerData.password) {
-        setConfirmPasswordError('Passwords do not match')
+        setConfirmPasswordError('Passwords do not match');
       } else {
-        setConfirmPasswordError('')
+        setConfirmPasswordError('');
       }
     }
-  }
+  };
+  console.log(isLogin, "is login or not");
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-
+    e.preventDefault();
     if (isLogin) {
-      // LOGIN FLOW
-      try {
-        const response = await axios.post(`${apiUrl}/login`, {
-          email: loginData.email,
-          password: loginData.password
-        })
-
-        const token = response.data.token
-        const user = {
-          email: loginData.email,
-          token: token
-        }
-
-        // Store token securely
-        if (loginData.rememberMe) {
-          localStorage.setItem("currentUser", JSON.stringify(user))
-        } else {
-          sessionStorage.setItem("currentUser", JSON.stringify(user))
-        }
-
-        console.log("Login successful:", user)
-        // Redirect user or update UI here
-
-      } catch (error) {
-        console.error("Login failed:", error.response?.data || error.message)
-        alert("Login failed. Please check your credentials.")
-      }
-
+      await login(loginData);
     } else {
-      // REGISTER FLOW
-      if (passwordError || confirmPasswordError) return
-      if (registerData.password !== registerData.confirmPassword) {
-        setConfirmPasswordError('Passwords do not match')
-        return
-      }
-
-      try {
-        const userData = {
-          name: registerData.firstName,
-          lastName: registerData.lastName,
-          email: registerData.email,
-          password: registerData.password
-        }
-
-        const response = await axios.post(`${apiUrl}/register`, userData)
-
-        const token = response.data.token
-        const user = {
-          name: registerData.firstName,
-          lastName: registerData.lastName,
-          email: registerData.email,
-          token: token
-        }
-
-        // Save token in session storage
-        sessionStorage.setItem("currentUser", JSON.stringify(user))
-
-        console.log("Registration successful:", user)
-        // Optionally switch to login mode or redirect
-        setIsLogin(true)
-
-      } catch (error) {
-        console.error("Registration failed:", error.response?.data || error.message)
-        alert("Registration failed. Try a different email.")
-      }
+      if (passwordError || confirmPasswordError) return;
+      await register(registerData, setIsLogin, setConfirmPasswordError);
     }
-  }
+  };
 
   // UI animation variants
   const containerVariants = {
@@ -167,7 +110,7 @@ const LoginPage = () => {
         delayChildren: 0.2
       }
     }
-  }
+  };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -176,15 +119,15 @@ const LoginPage = () => {
       y: 0,
       transition: { duration: 0.4 }
     }
-  }
+  };
 
   // Toggle between login and register mode
   const toggleMode = (mode) => {
-    setIsLogin(mode)
+    setIsLogin(mode);
     // Reset any validation errors
-    setPasswordError('')
-    setConfirmPasswordError('')
-  }
+    setPasswordError('');
+    setConfirmPasswordError('');
+  };
 
   return (
     <div className="py-12">
@@ -427,7 +370,7 @@ const LoginPage = () => {
         </motion.div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default LoginPage
+export default LoginPage;

@@ -2,14 +2,15 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import PropTypes from 'prop-types'
-import { 
-  FiSearch, 
-  FiShoppingCart, 
-  FiUser, 
-  FiHeart, 
-  FiMenu, 
-  FiX 
+import {
+  FiSearch,
+  FiShoppingCart,
+  FiUser,
+  FiHeart,
+  FiMenu,
+  FiX
 } from 'react-icons/fi'
+import UserDropdown from '../home/UserDropdown'
 
 const Header = ({ isScrolled, toggleMobileMenu, isMobileMenuOpen }) => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -36,16 +37,15 @@ const Header = ({ isScrolled, toggleMobileMenu, isMobileMenuOpen }) => {
   }
 
   return (
-    <header 
-      className={`sticky top-0 z-40 w-full transition-all duration-300 ${
-        isScrolled ? 'bg-white shadow-md py-2' : 'bg-white py-4'
-      }`}
+    <header
+      className={`sticky top-0 z-40 w-full transition-all duration-300 ${isScrolled ? 'bg-white shadow-md py-3' : 'bg-white py-4'
+        }`}
     >
       <div className="container-custom">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
@@ -73,19 +73,19 @@ const Header = ({ isScrolled, toggleMobileMenu, isMobileMenuOpen }) => {
               Home & Living
             </Link>
           </nav>
-          
+
           {/* Icons */}
           <div className="flex items-center space-x-4">
             {/* Search Icon/Form */}
             <div className="relative">
-              <button 
+              <button
                 onClick={toggleSearch}
                 className="p-2 text-neutral-700 hover:text-primary-600 transition-colors"
                 aria-label="Search"
               >
                 {isSearchOpen ? <FiX size={20} /> : <FiSearch size={20} />}
               </button>
-              
+
               <AnimatePresence>
                 {isSearchOpen && (
                   <motion.form
@@ -104,8 +104,8 @@ const Header = ({ isScrolled, toggleMobileMenu, isMobileMenuOpen }) => {
                         placeholder="Search products..."
                         className="px-4 py-2 w-64 focus:outline-none"
                       />
-                      <button 
-                        type="submit" 
+                      <button
+                        type="submit"
                         className="bg-primary-600 text-white p-2 transition-colors hover:bg-primary-700"
                         aria-label="Search"
                       >
@@ -116,15 +116,15 @@ const Header = ({ isScrolled, toggleMobileMenu, isMobileMenuOpen }) => {
                 )}
               </AnimatePresence>
             </div>
-            
+
             <Link to="/wishlist" className="hidden sm:block p-2 text-neutral-700 hover:text-primary-600 transition-colors">
               <FiHeart size={20} />
             </Link>
-            
+
             <Link to="/cart" className="relative p-2 text-neutral-700 hover:text-primary-600 transition-colors">
               <FiShoppingCart size={20} />
               {cartCount > 0 && (
-                <motion.span 
+                <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   className="absolute -top-1 -right-1 bg-accent-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
@@ -133,13 +133,11 @@ const Header = ({ isScrolled, toggleMobileMenu, isMobileMenuOpen }) => {
                 </motion.span>
               )}
             </Link>
-            
-            <Link to="/login" className="hidden sm:block p-2 text-neutral-700 hover:text-primary-600 transition-colors">
-              <FiUser size={20} />
-            </Link>
-            
+
+            <UserDropdown />
+
             {/* Mobile Menu Toggle */}
-            <button 
+            <button
               className="md:hidden p-2 text-neutral-700 hover:text-primary-600 transition-colors"
               onClick={toggleMobileMenu}
               aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
