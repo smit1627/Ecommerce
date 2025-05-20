@@ -20,14 +20,9 @@ const ProductsPage = () => {
   const searchQuery = searchParams.get('search') || '';
   const showDiscounted = searchParams.get('discount') === 'true';
   const apiUrl = import.meta.env.VITE_API_URL || ''
-  const token = JSON.parse(sessionStorage.getItem('currentUser')).token
 
   const getProductData = async () => {
-    const response = await axios.get(`${apiUrl}/getAllProducts`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
+    const response = await axios.get(`${apiUrl}/getAllProducts`)
     console.log(response);
 
     setFilteredProducts(response.data)
@@ -294,7 +289,7 @@ const ProductsPage = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map(product => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product._id} product={product} />
                 ))}
               </div>
             )}
