@@ -6,7 +6,7 @@ const UserController = require("../Controller/UserController");
 
 router.post("/register", UserController.store);
 router.post("/login", UserController.login);
-// router.get("/getAll", UserController.getAll);
+router.get("/getAll", UserController.getAll);
 // router.put("/update/:id", UserController.updateUser);
 // router.delete("/delete/:id", UserController.deleteUser);
 
@@ -27,7 +27,7 @@ const CartController = require("../Controller/CartController");
 router.post("/addToCart", jwtAuthMiddleware, CartController.addToCart);
 router.get("/getCart", jwtAuthMiddleware, CartController.getCart);
 router.delete("/deletedProduct/:id", jwtAuthMiddleware, CartController.removeFromCart);
-// router.put("/updateCart/:productId", jwtAuthMiddleware, CartController.updateCart);
+router.put("/updateCart/:productId", jwtAuthMiddleware, CartController.updateCart);
 
 
 module.exports = router;

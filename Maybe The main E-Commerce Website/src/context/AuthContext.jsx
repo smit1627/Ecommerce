@@ -19,24 +19,15 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (userData) => {
     try {
-      const registeredUser = JSON.parse(localStorage.getItem('registeredUser'));
-      if (!registeredUser) {
-        console.log("No registered user found in storage");
-        return false;
-      }
       console.log(userData);
-
-
-      const response = await axios.post(`${apiUrl}/login`, {
-        email: userData.email,
-        password: userData.password
-      });
+      const response = await axios.post(`${apiUrl}/login`, userData);
       console.log(response);
 
-
-      if (response.status >= 200 && response.status < 300) {
+      if (response.status >= 200 && response.status < 300 && response.data.token && response.data.message === "Login successful") {
+        const { email } = userData
+        console.log(email);
         const loggedInUser = {
-          ...userData,
+          email,
           token: response.data.token
         };
         console.log(loggedInUser);
@@ -46,7 +37,7 @@ export const AuthProvider = ({ children }) => {
         return true;
       }
     } catch (error) {
-      console.log("Error during login:", error.message);
+      console.log("Invalid Credential", error.message);
       return false;
     }
   };
@@ -57,12 +48,8 @@ export const AuthProvider = ({ children }) => {
       console.log(response);
 
       if (response.status >= 200 && response.status < 300) {
-        const registeredUser = {
-          ...userData,
-          id: response.data._id,
-        };
         // Store in localStorage so it's persistent
-        localStorage.setItem('registeredUser', JSON.stringify(registeredUser));
+        // localStorage.setItem('registeredUser', JSON.stringify(registeredUser));
         return true;
       } else {
         console.log("error while registering the user");

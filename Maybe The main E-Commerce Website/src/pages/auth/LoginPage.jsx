@@ -68,9 +68,11 @@ const LoginPage = () => {
             password: formData.password
           };
 
-          const success = login(userData);
+          const success = await login(userData);
+          console.log(success, "login success");
 
-          if (success) {
+
+          if (success === true) {
             navigate(from);
           } else {
             setLoginError('An error occurred during login. Please try again.');

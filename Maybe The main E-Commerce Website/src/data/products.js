@@ -361,7 +361,7 @@ export const getProductsByCategory = (categoryId) => {
 };
 
 export const getProductById = (productId) => {
-  return products.find(product => product.id === productId);
+  return products.find(product => product._id === productId);
 };
 
 export const getRelatedProducts = (productId, limit = 4) => {
@@ -369,7 +369,7 @@ export const getRelatedProducts = (productId, limit = 4) => {
   if (!product) return [];
 
   return products
-    .filter(p => p.id !== productId && p.category === product.category)
+    .filter(p => p._id !== productId && p.category === product.category)
     .sort(() => 0.5 - Math.random()) // Simple random sort
     .slice(0, limit);
 };
