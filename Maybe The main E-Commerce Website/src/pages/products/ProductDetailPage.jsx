@@ -17,7 +17,7 @@ import Button from '../../components/ui/Button';
 import ProductCard from '../../components/ui/ProductCard';
 
 const ProductDetailPage = () => {
-  const { id } = useParams();
+  const { _id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useContext(CartContext);
   const [product, setProduct] = useState(null);
@@ -28,17 +28,24 @@ const ProductDetailPage = () => {
   useEffect(() => {
     setLoading(true);
     window.scrollTo(0, 0);
+    console.log(_id, "id");
 
-    const fetchedProduct = getProductById(id);
+    const fetchedProduct = getProductById(_id);
+    console.log(fetchedProduct);
+
     if (fetchedProduct) {
       setProduct(fetchedProduct);
-      setRelatedProducts(getRelatedProducts(id, 4));
+      setRelatedProducts(getRelatedProducts(_id, 4));
     } else {
-      navigate('/404');
+      // navigate('/404');
+      setProduct(null);
+      setRelatedProducts([]);
+      setLoading(false);
+      return;
     }
 
     setLoading(false);
-  }, [id, navigate]);
+  }, [_id, navigate]);
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
@@ -274,7 +281,7 @@ const ProductDetailPage = () => {
           <h2 className="text-xl font-medium mb-4">You May Also Like</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {relatedProducts.map(product => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard key={product._id} product={product} />
             ))}
           </div>
         </div>

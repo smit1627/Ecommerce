@@ -5,7 +5,7 @@ import { CartContext } from '../../context/CartContext';
 import Button from './Button';
 
 const ProductCard = ({ product }) => {
-  const { id, title, price, image, rating, discount } = product;
+  const { _id, title, price, image, rating, discount } = product;
   const { addToCart } = useContext(CartContext);
   const imageUrl = import.meta.env.VITE_IMAGE_URL
 
@@ -20,7 +20,7 @@ const ProductCard = ({ product }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:-translate-y-1">
-      <Link to={`/product/${id}`} className="block">
+      <Link to={`/product/${_id}`} className="block">
         <div className="relative h-48 overflow-hidden">
           <img
             src={`${imageUrl}/${image}`}
