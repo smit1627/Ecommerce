@@ -23,37 +23,6 @@ import Modal, { useModal } from '../../components/ui/Modal';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 
-
-
-
-// Mock data for products
-// const generateProducts = (count) => {
-//   const categories = ['Electronics', 'Clothing', 'Home & Kitchen', 'Sports', 'Beauty'];
-//   const statuses = ['In Stock', 'Low Stock', 'Out of Stock'];
-
-//   return Array.from({ length: count }, (_, i) => ({
-//     id: `PRD-${1000 + i}`,
-//     name: [
-//       'Wireless Earbuds', 'Smartphone Case', 'Smart Watch', 'Bluetooth Speaker',
-//       'T-Shirt', 'Jeans', 'Sneakers', 'Backpack', 'Coffee Mug', 'Water Bottle',
-//       'Yoga Mat', 'Desk Lamp', 'Notebook', 'Sunglasses', 'Headphones'
-//     ][Math.floor(Math.random() * 15)],
-//     category: categories[Math.floor(Math.random() * categories.length)],
-//     price: `$${(Math.random() * 150 + 10).toFixed(2)}`,
-//     inventory: Math.floor(Math.random() * 100),
-//     status: statuses[Math.floor(Math.random() * statuses.length)],
-//     image: [
-//       'https://images.pexels.com/photos/3394666/pexels-photo-3394666.jpeg?auto=compress&cs=tinysrgb&w=100',
-//       'https://images.pexels.com/photos/4071887/pexels-photo-4071887.jpeg?auto=compress&cs=tinysrgb&w=100',
-//       'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&cs=tinysrgb&w=100',
-//       'https://images.pexels.com/photos/1279107/pexels-photo-1279107.jpeg?auto=compress&cs=tinysrgb&w=100',
-//       'https://images.pexels.com/photos/5709639/pexels-photo-5709639.jpeg?auto=compress&cs=tinysrgb&w=100'
-//     ][Math.floor(Math.random() * 5)],
-//   }));
-// };
-
-// const mockProducts = generateProducts(48);
-
 const statusColorMap = {
   'In Stock': 'success',
   'Low Stock': 'warning',

@@ -230,33 +230,6 @@ const ProductDetail = () => {
                 </div>
               </div>
             </Card>
-
-
-            {/* Related Products */}
-            {/* <Card title="Related Products">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {product.related.map((related) => (
-                  <div
-                    key={related.id}
-                    className="flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/products/${related.id}`)}
-                  >
-                    <div className="h-16 w-16 rounded overflow-hidden bg-gray-100 dark:bg-gray-700 mr-4 flex-shrink-0">
-                      <img
-                        src={related.image}
-                        alt={related.name}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">{related.name}</h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{related.id}</p>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white mt-1">{related.price}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card> */}
           </div>
 
           <div className="space-y-6">
@@ -279,15 +252,6 @@ const ProductDetail = () => {
                   <span className="text-gray-500 dark:text-gray-400">Category</span>
                   <span className="text-gray-900 dark:text-white">{product.category}</span>
                 </div>
-
-                {/* <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-500 dark:text-gray-400">Rating</span>
-                  <span className="flex items-center text-gray-900 dark:text-white">
-                    {product.reviews.average}
-                    <Star className="h-4 w-4 text-yellow-500 ml-1 mr-1" fill="currentColor" />
-                    <span className="text-xs text-gray-500 dark:text-gray-400">({product.reviews.count} reviews)</span>
-                  </span>
-                </div> */}
               </div>
 
 
@@ -331,68 +295,6 @@ const ProductDetail = () => {
           </div>
         </div>
       )}
-
-      {/* Reviews Tab */}
-      {/* {activeTab === 'reviews' && (
-        <div className="space-y-6">
-          <Card>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-1 flex flex-col items-center justify-center p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div className="text-4xl font-bold text-gray-900 dark:text-white mb-2">{product.reviews.average}</div>
-                <div className="flex items-center mb-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-5 w-5 ${i < Math.floor(product.reviews.average) ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600'}`}
-                      fill={i < Math.floor(product.reviews.average) ? 'currentColor' : 'none'}
-                    />
-                  ))}
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">Based on {product.reviews.count} reviews</div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  leftIcon={<ExternalLink className="h-4 w-4" />}
-                >
-                  View All Reviews
-                </Button>
-              </div>
-
-              <div className="md:col-span-2">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Rating Distribution</h3>
-                <div className="space-y-3">
-                  {product.reviews.distribution.map((item) => (
-                    <div key={item.rating} className="flex items-center">
-                      <div className="flex-none w-10 text-sm text-gray-700 dark:text-gray-300">
-                        {item.rating} {item.rating === 1 ? 'star' : 'stars'}
-                      </div>
-                      <div className="flex-1 mx-3">
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                          <div
-                            className="bg-yellow-500 h-2.5 rounded-full"
-                            style={{ width: `${item.percentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      <div className="flex-none w-10 text-sm text-right text-gray-700 dark:text-gray-300">
-                        {item.percentage}%
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card title="Recent Reviews">
-            <div className="flex items-center justify-center h-64 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="text-gray-500 dark:text-gray-400 text-center p-4">
-                <p>This section would display recent customer reviews</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )} */}
 
       {/* Delete Confirmation Modal */}
       <Modal

@@ -132,7 +132,7 @@ exports.updateCart = async (req, res) => {
         }
 
         // Find the item by productId
-        const item = cart.items.find(item => item._id == productId);
+        const item = cart.items.find(item => item.productId._id == productId);
 
         if (!item) {
             return res.status(404).json({ message: "Product not found in cart" });
